@@ -72,6 +72,9 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: "aws/codebuild/nodejs:14"
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: FRONTEND_DIR
+            Value: "frontend"  # The directory containing the React files and buildspec
       Artifacts:
         Type: S3
         Location: !Ref ProjectS3Bucket
@@ -80,9 +83,7 @@ Resources:
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       TimeoutInMinutes: 30
       SourceVersion: "refs/heads/main"
-      EnvironmentVariables:
-        - Name: FRONTEND_DIR
-          Value: "frontend"  # The directory containing the React files and buildspec
+      
 
   # IAM Role for CodeBuild to have access to S3 and CloudFront
   CodeBuildServiceRole:
