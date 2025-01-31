@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudFormation template to create an S3 bucket and a CloudFront distribution with codepipeline from github.
+Description: CloudFormation template to create an S3 bucket, CloudFront distribution, and CodePipeline for a React app.
 
 Resources:
   ProjectS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "cloud-project-frontend-${AWS::AccountId}"
+      BucketName: !Sub "finalproject-bucket-${AWS::AccountId}"
       AccessControl: Private
       CorsConfiguration:
         CorsRules:
@@ -59,64 +59,84 @@ Resources:
             Condition:
               StringEquals:
                 "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
-  
-  #Codepipeline
-  ReactAppCodeBuildProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: ReactAppBuildProject
-      Source:
-        Type: GITHUB
-        Location: "https://github.com/ssuheesh/CloudProject"
-      Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: "aws/codebuild/nodejs:14"
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-          - Name: FRONTEND_DIR
-            Value: "frontend"  # The directory containing the React files and buildspec
-      Artifacts:
-        Type: S3
-        Location: !Ref ProjectS3Bucket
-        Path: build
-        Name: react-build-output
-      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
-      TimeoutInMinutes: 30
-      SourceVersion: "refs/heads/main"
-      
-
-  # IAM Role for CodeBuild to have access to S3 and CloudFront
-  CodeBuildServiceRole:
+  ##########
+  CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: codebuild.amazonaws.com
-            Action: "sts:AssumeRole"
+            Action: sts:AssumeRole
       Policies:
-        - PolicyName: "CodeBuildPermissions"
+        - PolicyName: CodeBuildAccess
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - "s3:PutObject"
-                  - "s3:GetObject"
-                Resource: !Sub "arn:aws:s3:::${ProjectS3Bucket}/*"
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${ProjectS3Bucket}/*"
+                  - !Sub "arn:aws:s3:::${ProjectS3Bucket}"
               - Effect: Allow
                 Action:
-                  - "cloudfront:CreateInvalidation"
-                Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
 
-  # CodePipeline to orchestrate the process
-  ReactAppPipeline:
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelineAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource: "*"
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "ReactAppBuild-${AWS::StackName}"
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: frontend/buildspec.yml
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+
+  CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: ReactAppDeploymentPipeline
-      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      Name: !Sub "ReactAppPipeline-${AWS::StackName}"
+      RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
         Location: !Ref ProjectS3Bucket
@@ -127,68 +147,42 @@ Resources:
               ActionTypeId:
                 Category: Source
                 Owner: ThirdParty
+                Version: 1
                 Provider: GitHub
-                Version: "1"
+              Configuration:
+                Owner: ssuheesh
+                Repo: CloudProject
+                Branch: main
+                OAuthToken: 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
               OutputArtifacts:
                 - Name: SourceOutput
-              Configuration:
-                Repo: "ssuheesh/CloudProject"
-                Branch: "main"
-                OAuthToken: "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"
         - Name: Build
           Actions:
             - Name: BuildReactApp
               ActionTypeId:
                 Category: Build
                 Owner: AWS
+                Version: 1
                 Provider: CodeBuild
-                Version: "1"
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
               InputArtifacts:
                 - Name: SourceOutput
               OutputArtifacts:
                 - Name: BuildOutput
-              Configuration:
-                ProjectName: !Ref ReactAppCodeBuildProject
         - Name: Deploy
           Actions:
             - Name: DeployToS3
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
+                Version: 1
                 Provider: S3
-                Version: "1"
-              InputArtifacts:
-                - Name: BuildOutput
               Configuration:
                 BucketName: !Ref ProjectS3Bucket
-                Extract: "true"
-
-  # IAM Role for CodePipeline to have access to resources
-  CodePipelineServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codepipeline.amazonaws.com
-            Action: "sts:AssumeRole"
-      Policies:
-        - PolicyName: "CodePipelinePermissions"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:PutObject"
-                Resource: !Sub "arn:aws:s3:::${ProjectS3Bucket}/*"
-              - Effect: Allow
-                Action:
-                  - "cloudfront:CreateInvalidation"
-                Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
-
+                Extract: true
+              InputArtifacts:
+                - Name: BuildOutput
 
 Outputs:
   S3BucketName:
@@ -197,6 +191,6 @@ Outputs:
   CloudFrontURL:
     Description: URL of the CloudFront distribution
     Value: !Sub "https://${CloudFrontDistribution.DomainName}"
-  CodePipelineURL:
-    Description: URL of the CodePipeline
-    Value: !Sub "https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/pipelines/${ReactAppPipeline}"
+  CodePipelineName:
+    Description: Name of the CodePipeline
+    Value: !Ref CodePipeline
