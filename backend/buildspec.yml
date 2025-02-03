@@ -1,0 +1,21 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands: 
+      - echo "Installing dependencies"
+      - cd backend/backend-api && npm cache clean --force
+      - rm -rf node_modules package-lock.json
+      - npm -v
+      - npm install -g npm
+      - npm i
+  build:
+    commands:
+      - echo "Zipping backend folder"
+      - zip -r function.zip ./
+      - ls -ltr ./
+artifacts:
+  files:
+    - backend/backend-api/function.zip
+    - backend/backend-api/appspec.yml

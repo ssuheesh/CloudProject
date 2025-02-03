@@ -1,7 +1,11 @@
-import { DynamoDBClient, PutItemCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
 const USERS_TABLE = process.env.USERS_TABLE || "Users";
-const dynamoDb = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const dynamoDb = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" ,maxRetries: 3,
+httpOptions: {
+    timeout: 5000,
+    connectTimeout: 5000
+}});
 
 export const createUser = async (user) => {
   const params = {
@@ -33,3 +37,22 @@ export const findUserByEmail = async (email) => {
     profileImage: Item.profileImage.S,
   } : null;
 };
+
+export const updateUser = async (email, updatedData) => {
+    const params = {
+      TableName: 'Users',
+      Key: { email: { S: email } },  
+      UpdateExpression: 'SET #profileImage = :profileImage', 
+      ExpressionAttributeNames: { '#profileImage': 'profileImage' },
+      ExpressionAttributeValues: { ':profileImage': { S: updatedData.profileImage } },
+      ReturnValues: 'ALL_NEW',  
+    };
+  
+    try {
+      const result = await dynamoDb.send(new UpdateItemCommand(params));
+      return result.Attributes; 
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Failed to update user');
+    }
+  };

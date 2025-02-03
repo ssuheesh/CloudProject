@@ -4,6 +4,5 @@ Resources:
       Type: AWS::Lambda::Function
       Properties: 
         Name: "backend-api"
-        Alias: "backend-api"
-        CurrentVersion: "1"
-        TargetVersion: "1"
+        CurrentVersion: "$LATEST"
+        TargetVersion: "$LATEST"
