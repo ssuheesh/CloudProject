@@ -257,6 +257,20 @@ Resources:
       Layers:
         - !Ref LambdaLayer
 
+  LambdaVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Description: "Initial version of the Lambda function"
+
+  LambdaAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: backend-api
+      FunctionName: !Ref LambdaFunction
+      FunctionVersion: !GetAtt LambdaVersion.Version
+
+
   # IAM Role for Lambda
   LambdaIamRole:
     Type: AWS::IAM::Role
