@@ -45,6 +45,7 @@ const Signup = () => {
         const { uploadURL } = response.data;
         if (!uploadURL) {
           setError("Failed to get upload URL");
+          setLoading(false);
           return;
         }
 
