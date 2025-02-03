@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "../config/api";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,8 +11,8 @@ const Signup = () => {
   });
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate(); 
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -29,7 +30,6 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess("");
 
     try {
       let requestData = { ...formData };
@@ -38,9 +38,10 @@ const Signup = () => {
         const filename = encodeURIComponent(file.name);
         const contentType = file.type;
         requestData.profileImageName = filename;  
-
+        requestData.contentType = contentType;
+        
         const response = await axios.post(`${BASE_URL}user/signup`, requestData);
-
+        
         const { uploadURL } = response.data;
         if (!uploadURL) {
           setError("Failed to get upload URL");
@@ -58,12 +59,12 @@ const Signup = () => {
         email: "",
         password: "",
       });
-      setSuccess("Signup successful! Please ");
       setLoading(false);
+      navigate("/login", { state: { message: "Signup successful! Please log in." } });
+
     } catch (err) {
-      console.log(err);
       setLoading(false);
-      setError("Something went wrong. Please try again.");
+      setError(err.response.data.error);
     }
   };
 
@@ -73,14 +74,7 @@ const Signup = () => {
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
           Sign Up
         </h2>
-        {success && (
-          <h3 className="text-green-700 text-sm font-medium text-center mt-2">
-            {success}{" "}
-            <a href="/login" className="text-blue-500 hover:underline">
-              Log in 
-            </a>
-          </h3>
-        )}
+        
         {error && (
           <h3 className="text-red-500 text-sm font-medium text-center mt-2">
             {error}

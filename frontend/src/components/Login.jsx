@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BASE_URL } from '../config/api';
 
 const Login = () => {
     const navigate = useNavigate(); 
+    const location = useLocation();
+    const message = location.state?.message;
+    
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -41,6 +44,11 @@ const Login = () => {
     <div className="min-h-screen flex justify-center items-center bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white shadow-lg rounded-lg">
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Log In</h2>
+        {message && (
+          <h3 className="text-green-700 text-sm font-medium text-center mt-2">
+            {message}
+          </h3>
+        )}
         {error && 
           <h3 className="text-red-500 text-sm font-medium text-center mt-2">
             {error}
