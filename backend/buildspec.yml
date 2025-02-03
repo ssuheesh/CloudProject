@@ -17,5 +17,6 @@ phases:
       - ls -ltr ./
 artifacts:
   files:
-    - backend/backend-api/function.zip
     - backend/backend-api/appspec.yml
+    - backend/backend-api/function.zip
+  discard-paths: yes
