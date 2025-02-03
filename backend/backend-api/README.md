@@ -45,3 +45,6 @@ API	Method	Description
 /profile	GET	Fetches user profile details
 
 /updateprofile PUT Update user profile with profile image
+
+
+#test
