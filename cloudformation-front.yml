@@ -44,6 +44,11 @@ Resources:
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
         DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponsePagePath: "/index.html" 
+            ResponseCode: 200 
+            ErrorCachingMinTTL: 300
 
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
