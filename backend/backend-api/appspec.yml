@@ -6,4 +6,4 @@ Resources:
         Name: "backend-api"
         Alias: "backend-api"
         CurrentVersion: "1"
-        TargetVersion: "2"
+        TargetVersion: "1"
