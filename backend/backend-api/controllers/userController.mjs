@@ -16,16 +16,11 @@ export const signUp = async (req, res) => {
 
   try {
   
-    const user = await findUserByEmail(email);
-    if (user.email !== null) {
-           return res.status(400).json({ error: "Email already exists" });
-    }
-
+   
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = uuidv4();
 
     let profileImageUrl = "";
-
    
     if (profileImageName && contentType) {
       const uploadParams = {
@@ -41,20 +36,27 @@ export const signUp = async (req, res) => {
       profileImageUrl = `https://${S3_BUCKET_NAME}.s3.us-east-1.amazonaws.com/profiles/${userId}/${profileImageName}`;
     }
 
-
-    await createUser({
-      email,
-      userId,
-      password: hashedPassword,
-      name,
-      profileImage: profileImageUrl || " ", 
-    });
+    const user = await findUserByEmail(email);
+    if (user !== null) {
+      if (user.email !== null) {
+        return res.status(400).json({ error: "Email already exists" });
+      }    
+    }else{
+      await createUser({
+        email,
+        userId,
+        password: hashedPassword,
+        name,
+        profileImage: profileImageUrl || " ", 
+      });
+    }     
 
   
     res.status(201).json({
       message: "User registered successfully",
       uploadURL: profileImageUrl ? profileImageUrl : null,
     });
+    
   } catch (error) {
     console.error("Signup Error:", error);
     res.status(500).json({ error: "Error registering user" });
@@ -67,7 +69,7 @@ export const signUp = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
- 
+    console.log("Login Attempt: ", email);
 
     const user = await findUserByEmail(email);
     if (!user) {
@@ -75,11 +77,17 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: "User not found" });
     }
 
+    console.log("Stored Hashed Password:", user.password);
+    console.log("Entered Password:", password);
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.log("Password Mismatch");
       return res.status(400).json({ error: "Invalid credentials" });
     }
+
+    console.log("Generating JWT Token...");
+    console.log("JWT_SECRET:", JWT_SECRET);
 
     const token = jwt.sign({ userId: user.userId, email: user.email }, JWT_SECRET, { expiresIn: "8h" });
 
@@ -147,6 +155,6 @@ export const updateProfile = async (req, res) => {
 
   } catch (error) {
     console.error("Update Profile Error:", error);
-  ///  res.status(500).json({ error: "Error updating profile" });
+    res.status(500).json({ error: "Error updating profile" });
   }
 };
