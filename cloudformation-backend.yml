@@ -130,6 +130,14 @@ Resources:
       ParentId: !Ref UserResource
       PathPart: "updateprofile"
 
+  # Resource for "user/profile"
+  UserProfileResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !Ref UserResource
+      PathPart: "profile"
+
   # Method for POST /user/signup
   UserSignupMethod:
     Type: 'AWS::ApiGateway::Method'
@@ -163,6 +171,19 @@ Resources:
       RestApiId: !Ref ApiGatewayRestApi
       ResourceId: !Ref UserUpdateProfileResource
       HttpMethod: PUT
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations'
+  
+  # Method for GET /user/profile
+  UserProfileMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref UserUpdateProfileResource
+      HttpMethod: GET
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
@@ -259,63 +280,64 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                  - "dynamodb:*",
-                  - "dax:*",
-                  - "application-autoscaling:DeleteScalingPolicy",
-                  - "application-autoscaling:DeregisterScalableTarget",
-                  - "application-autoscaling:DescribeScalableTargets",
-                  - "application-autoscaling:DescribeScalingActivities",
-                  - "application-autoscaling:DescribeScalingPolicies",
-                  - "application-autoscaling:PutScalingPolicy",
-                  - "application-autoscaling:RegisterScalableTarget",
-                  - "cloudwatch:DeleteAlarms",
-                  - "cloudwatch:DescribeAlarmHistory",
-                  - "cloudwatch:DescribeAlarms",
-                  - "cloudwatch:DescribeAlarmsForMetric",
-                  - "cloudwatch:GetMetricStatistics",
-                  - "cloudwatch:ListMetrics",
-                  - "cloudwatch:PutMetricAlarm",
-                  - "cloudwatch:GetMetricData",
-                  - "datapipeline:ActivatePipeline",
-                  - "datapipeline:CreatePipeline",
-                  - "datapipeline:DeletePipeline",
-                  - "datapipeline:DescribeObjects",
-                  - "datapipeline:DescribePipelines",
-                  - "datapipeline:GetPipelineDefinition",
-                  - "datapipeline:ListPipelines",
-                  - "datapipeline:PutPipelineDefinition",
-                  - "datapipeline:QueryObjects",
-                  - "ec2:DescribeVpcs",
-                  - "ec2:DescribeSubnets",
-                  - "ec2:DescribeSecurityGroups",
-                  - "iam:GetRole",
-                  - "iam:ListRoles",
-                  - "kms:DescribeKey",
-                  - "kms:ListAliases",
-                  - "sns:CreateTopic",
-                  - "sns:DeleteTopic",
-                  - "sns:ListSubscriptions",
-                  - "sns:ListSubscriptionsByTopic",
-                  - "sns:ListTopics",
-                  - "sns:Subscribe",
-                  - "sns:Unsubscribe",
-                  - "sns:SetTopicAttributes",
-                  - "lambda:CreateFunction",
-                  - "lambda:ListFunctions",
-                  - "lambda:ListEventSourceMappings",
-                  - "lambda:CreateEventSourceMapping",
-                  - "lambda:DeleteEventSourceMapping",
-                  - "lambda:GetFunctionConfiguration",
-                  - "lambda:DeleteFunction",
-                  - "resource-groups:ListGroups",
-                  - "resource-groups:ListGroupResources",
-                  - "resource-groups:GetGroup",
-                  - "resource-groups:GetGroupQuery",
-                  - "resource-groups:DeleteGroup",
-                  - "resource-groups:CreateGroup",
-                  - "tag:GetResources",
-                  - "kinesis:ListStreams",
-                  - "kinesis:DescribeStream",
+                  - "s3:*"
+                  - "dynamodb:*"
+                  - "dax:*"
+                  - "application-autoscaling:DeleteScalingPolicy"
+                  - "application-autoscaling:DeregisterScalableTarget"
+                  - "application-autoscaling:DescribeScalableTargets"
+                  - "application-autoscaling:DescribeScalingActivities"
+                  - "application-autoscaling:DescribeScalingPolicies"
+                  - "application-autoscaling:PutScalingPolicy"
+                  - "application-autoscaling:RegisterScalableTarget"
+                  - "cloudwatch:DeleteAlarms"
+                  - "cloudwatch:DescribeAlarmHistory"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:DescribeAlarmsForMetric"
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:GetMetricData"
+                  - "datapipeline:ActivatePipeline"
+                  - "datapipeline:CreatePipeline"
+                  - "datapipeline:DeletePipeline"
+                  - "datapipeline:DescribeObjects"
+                  - "datapipeline:DescribePipelines"
+                  - "datapipeline:GetPipelineDefinition"
+                  - "datapipeline:ListPipelines"
+                  - "datapipeline:PutPipelineDefinition"
+                  - "datapipeline:QueryObjects"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeSecurityGroups"
+                  - "iam:GetRole"
+                  - "iam:ListRoles"
+                  - "kms:DescribeKey"
+                  - "kms:ListAliases"
+                  - "sns:CreateTopic"
+                  - "sns:DeleteTopic"
+                  - "sns:ListSubscriptions"
+                  - "sns:ListSubscriptionsByTopic"
+                  - "sns:ListTopics"
+                  - "sns:Subscribe"
+                  - "sns:Unsubscribe"
+                  - "sns:SetTopicAttributes"
+                  - "lambda:CreateFunction"
+                  - "lambda:ListFunctions"
+                  - "lambda:ListEventSourceMappings"
+                  - "lambda:CreateEventSourceMapping"
+                  - "lambda:DeleteEventSourceMapping"
+                  - "lambda:GetFunctionConfiguration"
+                  - "lambda:DeleteFunction"
+                  - "resource-groups:ListGroups"
+                  - "resource-groups:ListGroupResources"
+                  - "resource-groups:GetGroup"
+                  - "resource-groups:GetGroupQuery"
+                  - "resource-groups:DeleteGroup"
+                  - "resource-groups:CreateGroup"
+                  - "tag:GetResources"
+                  - "kinesis:ListStreams"
+                  - "kinesis:DescribeStream"
                   - "kinesis:DescribeStreamSummary"
                 Effect: "Allow"
                 Resource:
