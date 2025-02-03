@@ -158,7 +158,7 @@ Resources:
                 Owner: ssuheesh
                 Repo: CloudProject
                 Branch: main
-                OAuthToken: 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
+                OAuthToken: <secret_key>
               OutputArtifacts:
                 - Name: SourceOutput
         - Name: Build
