@@ -158,7 +158,8 @@ Resources:
                 Owner: ssuheesh
                 Repo: CloudProject
                 Branch: main
-                OAuthToken: !Sub "{{resolve:secretsmanager:MyToken:SecretString:token}}"              OutputArtifacts:
+                OAuthToken: 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
+              OutputArtifacts:
                 - Name: SourceOutput
         - Name: Build
           Actions:
