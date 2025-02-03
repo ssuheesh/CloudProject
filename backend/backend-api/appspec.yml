@@ -1,20 +1,9 @@
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      nodejs: 22
-    commands: 
-      - echo "Installing dependencies"
-      - cd frontend && npm cache clean --force
-      - rm -rf node_modules package-lock.json
-      - npm -v
-      - npm install -g npm
-      - npm i
-  build:
-    commands:
-      - echo "Zipping backend folder"
-      - zip -r function.zip ./ appspec.yml
-artifacts:
-  files:
-    - function.zip
-    - appspec.yml
+version: 0.0
+Resources:
+  - LambdaFunction:
+      Type: AWS::Lambda::Function
+      Properties: 
+        Name: "backend-api"
+        Alias: "backend-api"
+        CurrentVersion: "1"
+        TargetVersion: "1"
