@@ -28,3 +28,5 @@ This project is an engineering proof of concept aimed at providing hands-on expe
 | Nomin Nergui    |            | - Develop the user interface using ReactJS  <br> - Implement SignUp, Login, Retrieve User Info, and Upload Image features  <br> - Integrate with backend APIs for user authentication and profile image upload to S3 bucket.  <br> - Implement responsive design and user-friendly experience and deploy the frontend to S3 and configure CloudFront for distribution. |
 | Sukhbat Amartugs |            | - Develop the CloudFormation YAML template for the serverless architecture.  <br> - Define resources: Such as Lambda, API Gateway, DynamoDB, S3  <br> - Implement CodePipeline for automated deployment of frontend and backend. |
 | Toe Toe Aung     | 618090     | - Develop the backend using NodeJS  <br> - Implement SignUp, Login, Retrieve User Info, and Upload Image APIs.  <br> - Integrate with DynamoDB for storing user data.  <br> - Implement image upload and storage functionality using S3.  <br> - Ensure secure authentication and authorization mechanisms and deploy the backend using Lambda and API Gateway. |
+
+#
