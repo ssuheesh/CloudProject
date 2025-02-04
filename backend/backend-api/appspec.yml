@@ -5,5 +5,5 @@ Resources:
       Properties: 
         Name: "backend-api"
         Alias: "backend-api"
-        CurrentVersion: "9"
-        TargetVersion: "9"
+        CurrentVersion: "14"
+        TargetVersion: "14"

@@ -186,12 +186,12 @@ Resources:
     Type: 'AWS::ApiGateway::Method'
     Properties:
       RestApiId: !Ref ApiGatewayRestApi
-      ResourceId: !Ref UserUpdateProfileResource
+      ResourceId: !Ref UserProfileResource
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
-        IntegrationHttpMethod: POST
+        IntegrationHttpMethod: GET
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations'
 
   # API Gateway Stage
